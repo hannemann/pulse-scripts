@@ -1,0 +1,17 @@
+#!/bin/bash
+
+get_pa_index() {
+	pacmd list-sink-inputs | 
+	awk -v name=$1 '$1 == "index:" {idx = $2} $1 == "state:" {state = $2} $1 == "application.name" && $3 == "\"" name "\"" && state == "RUNNING" {print idx; exit}'
+	# {print idx state $1 $2 $3}
+}
+
+INDEX=$(get_pa_index $1)
+
+if [[ "$2" == "+" ]]; then
+	pactl set-sink-input-volume "${INDEX}" +5%
+elif [[ "$2" == "-" ]]; then
+	pactl set-sink-input-volume "${INDEX}" -5%
+elif [[ "$2" == "toggle" ]]; then
+	pactl set-sink-input-mute "${INDEX}" toggle
+fi
