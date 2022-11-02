@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. entities
+. $HOME/.config/pulse-scripts/entities
 
 get_pa_sinks() {
 	pacmd list-sinks | awk '/index/ || /name:/'

@@ -6,7 +6,7 @@ if [ ! $(pidof $1) ]; then
 	exit 1;
 fi
 
-. pa-function-lib
+. $HOME/.local/share/pulse-scripts/pa-function-lib
 
 INDEX=$(get_pa_app_index $1)
 

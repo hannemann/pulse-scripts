@@ -5,9 +5,11 @@ Playing with PulseAudio to be able to control it with ease from cli.
 Goal: Control with RPI Pico Powered Macro Pad
 
 
-## Usage
-Create your entities file
+## Installation
 ```bash
-cp entities.example entities
+make install
 ```
-Adjust variables to fit your environment
+Adjust entity variables to fit your environment
+```bash
+vi ~/.config/pulse-scripts/entities
+```

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-. pa-function-lib
+. $HOME/.local/share/pulse-scripts/pa-function-lib
 
 get_pa_app_list

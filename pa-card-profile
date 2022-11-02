@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. pa-function-lib
+. $HOME/.local/share/pulse-scripts/pa-function-lib
 
 set_card_profile() {
 	pactl set-card-profile $1 $2
