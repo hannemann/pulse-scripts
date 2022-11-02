@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-if [ ! $(pidof $1) ]; then
+if [ ! $(pidof -s $1) ]; then
 	echo App $1 not running >&2
 	exit 1;
 fi
