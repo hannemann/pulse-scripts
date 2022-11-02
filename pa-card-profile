@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+. pa-function-lib
+
+set_card_profile() {
+	pactl set-card-profile $1 $2
+}
+
+CARD=$(get_pa_card_index ${!1})
+
+set_card_profile ${CARD} $2

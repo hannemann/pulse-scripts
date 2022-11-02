@@ -1,8 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+
+if [ ! $(pidof $1) ]; then
+	echo App $1 not running >&2
+	exit 1;
+fi
 
 . pa-function-lib
 
-INDEX=$(get_pa_index $1)
+INDEX=$(get_pa_app_index $1)
 
 if [[ "$2" == "+" ]]; then
 	pactl set-sink-input-volume "${INDEX}" +5%
@@ -10,4 +16,9 @@ elif [[ "$2" == "-" ]]; then
 	pactl set-sink-input-volume "${INDEX}" -5%
 elif [[ "$2" == "toggle" ]]; then
 	pactl set-sink-input-mute "${INDEX}" toggle
+elif [[ $2 =~ ^[0-9]+%$ ]]; then
+	echo $2
+	pactl set-sink-input-volume "${INDEX}" $2
+else
+	echo +/-/percentage e.g 50%
 fi

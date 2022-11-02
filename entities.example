@@ -1,0 +1,4 @@
+HDMI="<alsa_output.pci-0000_04_00.1.hdmi-stereo>"
+ANALOG="<alsa_output.pci-0000_04_00.6.analog-stereo>"
+HEADSET="<alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo>"
+WEBCAM="<alsa_card.usb-WCM_USB_campark_PC04-02>"

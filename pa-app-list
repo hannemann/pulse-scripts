@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+. pa-function-lib
+
+get_pa_app_list
