@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+
+set_app_source() {
+	pacmd move-source-output "$1" "$2"
+}
+
+APP=$(get_pa_max_app_source_index $1)
+SOURCE=$(get_pa_source_index ${!2})
+
+set_app_source ${APP} ${SOURCE}

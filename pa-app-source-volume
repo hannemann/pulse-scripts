@@ -8,16 +8,16 @@ fi
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-INDEX=$(get_pa_max_app_index $1)
+INDEX=$(get_pa_max_app_source_index $1)
 
 if [[ "$2" == "+" ]]; then
-	pactl set-sink-input-volume "${INDEX}" +5%
+	pactl set-source-output-volume "${INDEX}" +5%
 elif [[ "$2" == "-" ]]; then
-	pactl set-sink-input-volume "${INDEX}" -5%
+	pactl set-source-output-volume "${INDEX}" -5%
 elif [[ "$2" == "toggle" ]]; then
-	pactl set-sink-input-mute "${INDEX}" toggle
+	pactl set-source-output-mute "${INDEX}" toggle
 elif [[ $2 =~ ^[0-9]+%$ ]]; then
-	pactl set-sink-input-volume "${INDEX}" $2
+	pactl set-source-output-volume "${INDEX}" $2
 else
 	echo +/-/percentage e.g 50%
 fi

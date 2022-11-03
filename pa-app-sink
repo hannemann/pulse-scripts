@@ -6,7 +6,7 @@ set_app_sink() {
 	pacmd move-sink-input "$1" "$2"
 }
 
-APP=$(get_pa_app_index $1)
+APP=$(get_pa_max_app_index $1)
 SINK=$(get_pa_sink_index ${!2})
 
 set_app_sink ${APP} ${SINK}

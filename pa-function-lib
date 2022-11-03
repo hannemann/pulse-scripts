@@ -11,11 +11,18 @@ get_pa_sink_index() {
 	pacmd list-sinks | awk -v sink=$1 '$1 == "*" {idx = $3} $1 == "index:" {idx = $2} $1 == "name:" && $2 == sink {print idx; exit}'
 }
 
+get_pa_source_index() {
+	pacmd list-sources | awk -v source=$1 '$1 == "*" {idx = $3} $1 == "index:" {idx = $2} $1 == "name:" && $2 == source {print idx; exit}'
+}
 
 get_pa_app_index() {
 	pacmd list-sink-inputs | 
 	awk -v name=$1 '$1 == "index:" {idx = $2} $1 == "state:" {state = $2} $1 == "application.process.binary" && $3 == "\"" name "\"" && state == "RUNNING" {print idx; exit}'
 	# {print idx state $1 $2 $3}
+}
+
+get_pa_max_app_index() {
+	pacmd list-sink-inputs | awk -v name=$1 '$1 == "index:" {tmp = $2} $1 == "state:" {state = $2} $1 == "application.process.binary" && $3 == "\"" name "\"" && state == "RUNNING" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
 }
 
 get_pa_card_index() {
@@ -24,4 +31,12 @@ get_pa_card_index() {
 
 get_pa_app_list() {
 	pacmd list-sink-inputs | awk -v running=false '$1=="state:" && $2=="RUNNING" {running=true} $1=="sink:" {sink=$3; idx_sink=$2} running==true && $1 == "application.process.binary" {gsub(/"/,"",$3); print $3": "idx_sink" "sink; running=false}'
+}
+
+get_pa_app_source_index() {
+	pacmd list-source-outputs | awk -v name=$1 '$1 == "index:" {idx = $2} $1 == "state:" {state = $2} $1 == "application.process.binary" && $3 == "\"" name "\"" && state == "RUNNING" {print idx; exit}'
+}
+
+get_pa_max_app_source_index() {
+	pacmd list-source-outputs | awk -v name=$1 '$1 == "index:" {tmp = $2} $1 == "state:" {state = $2} $1 == "application.process.binary" && $3 == "\"" name "\"" && state == "RUNNING" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
 }
