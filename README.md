@@ -13,3 +13,8 @@ Adjust entity variables to fit your environment
 ```bash
 vi ~/.config/pulse-scripts/entities
 ```
+
+Card names can be obtained by invoking
+```
+pactl list
+```
