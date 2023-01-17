@@ -16,5 +16,5 @@ vi ~/.config/pulse-scripts/entities
 
 Card names can be obtained by invoking
 ```
-pactl list
+pactl list sink
 ```
