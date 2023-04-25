@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+
+SINK=$(get_pa_sink_index ${!1})
+
+pacmd set-default-sink ${SINK}
