@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+
+SOURCE=$(get_pa_source_index ${!1})
+
+pacmd set-default-source ${SOURCE}
