@@ -1,8 +1,10 @@
 install:
 	install -D pa-app-list $$HOME/bin/pa-app-list
 	install -D pa-app-sink $$HOME/bin/pa-app-sink
-	install -D pa-app-source $$HOME/bin/pa-app-source
 	install -D pa-app-volume $$HOME/bin/pa-app-volume
+	install -D pa-app-source $$HOME/bin/pa-app-source
+	install -D pa-app-source $$HOME/bin/pa-default-source
+	install -D pa-app-source $$HOME/bin/pa-default-sink
 	install -D pa-app-source-volume $$HOME/bin/pa-app-source-volume
 	install -D pa-card-profile $$HOME/bin/pa-card-profile
 	install -D pa-entities-list $$HOME/bin/pa-entities-list
@@ -12,8 +14,10 @@ install:
 uninstall:
 	rm $$HOME/bin/pa-app-list
 	rm $$HOME/bin/pa-app-sink
-	rm $$HOME/bin/pa-app-source
 	rm $$HOME/bin/pa-app-volume
+	rm $$HOME/bin/pa-app-source
+	rm $$HOME/bin/pa-default-source
+	rm $$HOME/bin/pa-default-sink
 	rm $$HOME/bin/pa-app-source-volume
 	rm $$HOME/bin/pa-card-profile
 	rm $$HOME/bin/pa-entities-list
