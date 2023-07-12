@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo Inputs:
+echo --------------
+grep 'alsa_input' $HOME/.config/pulse-scripts/entities | column -t -s '='
+echo
+echo Outputs:
+echo --------------
+grep 'alsa_output' $HOME/.config/pulse-scripts/entities | column -t -s '='
+echo
+echo Cards:
+echo --------------
+grep 'alsa_card' $HOME/.config/pulse-scripts/entities | column -t -s '='
