@@ -26,4 +26,10 @@ uninstall:
 
 
 list-sinks:
-	pactl list sinks
+	pactl list sinks | grep -A 1 Name
+
+list-sources:
+	pactl list sources | grep -A 1 Name
+
+list-cards:
+	pactl list cards | grep Name
