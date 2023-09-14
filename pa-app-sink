@@ -3,7 +3,7 @@
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
 set_app_sink() {
-	pacmd move-sink-input "$1" "$2"
+	pactl move-sink-input "$1" "$2"
 }
 
 APP=$(get_pa_max_app_index $1)

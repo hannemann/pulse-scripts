@@ -19,5 +19,5 @@ elif [[ "$2" == "toggle" ]]; then
 elif [[ $2 =~ ^[0-9]+%$ ]]; then
 	pactl set-sink-input-volume "${INDEX}" $2
 else
-	echo +/-/percentage e.g 50%
+	echo toggle/+/-/percentage e.g 50%
 fi

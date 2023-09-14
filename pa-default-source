@@ -4,4 +4,4 @@
 
 SOURCE=$(get_pa_source_index ${!1})
 
-pacmd set-default-source ${SOURCE}
+[ -z $SOURCE ] || pactl set-default-source ${SOURCE}
