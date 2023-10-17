@@ -3,38 +3,38 @@
 . $HOME/.config/pulse-scripts/entities
 
 get_pa_sinks() {
-	pactl list sinks | awk '/Sink #/ || /name:/'
+	LANG=LC_ALL pactl list sinks | awk '/Sink #/ || /name:/'
 }
 
 get_pa_sink_index() {
-	pactl list sinks | awk -v sink=$1 '$1 == "Sink" {idx = $2} $1 == "node.name" && $3 == "\"" sink "\"" {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sinks | awk -v sink=$1 '$1 == "Sink" {idx = $2} $1 == "Name:" && $2 == sink {print substr(idx,2); exit}'
 }
 
 get_pa_source_index() {
-	pactl list sources | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "node.name" && $3 == "\"" source "\"" {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sources | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "Name:" && $2 == source {print substr(idx,2); exit}'
 }
 
 get_pa_app_index() {
-	pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {idx = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {idx = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {print substr(idx,2); exit}'
 }
 
 get_pa_max_app_index() {
-	pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
+	LANG=LC_ALL pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
 }
 
 get_pa_card_index() {
-	pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
 }
 
 get_pa_app_list() {
-	pactl list sink-inputs | awk '$1=="Sink" && $2=="Input" {idx = $3} $1 == "application.process.binary" {gsub(/"/,"",$3); print $3": "substr(idx,2);}'
+	LANG=LC_ALL pactl list sink-inputs | awk '$1=="Sink" && $2=="Input" {idx = $3} $1 == "application.process.binary" {gsub(/"/,"",$3); print $3": "substr(idx,2);}'
 }
 
 get_pa_app_source_index() {
-	pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {idx = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {print idx; exit}'
+	LANG=LC_ALL pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {idx = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {print idx; exit}'
 }
 
 get_pa_max_app_source_index() {
-	pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {tmp = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
+	LANG=LC_ALL pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {tmp = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
 }
 
