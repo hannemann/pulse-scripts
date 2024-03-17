@@ -7,11 +7,11 @@ get_pa_sinks() {
 }
 
 get_pa_sink_index() {
-	LANG=LC_ALL pactl list sinks | awk -v sink=$1 '$1 == "Sink" {idx = $2} $1 == "Name:" && $2 == sink {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sinks | awk -v sink=$1 '$1 == "Sink" {idx = $2} $1 == "Name:" && $2 ~ sink {print substr(idx,2); exit}'
 }
 
 get_pa_source_index() {
-	LANG=LC_ALL pactl list sources | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "Name:" && $2 == source {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sources | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "Name:" && $2 ~ source {print substr(idx,2); exit}'
 }
 
 get_pa_app_index() {
@@ -23,7 +23,7 @@ get_pa_max_app_index() {
 }
 
 get_pa_card_index() {
-	LANG=LC_ALL pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 ~ name {print substr(idx,2); exit}'
 }
 
 get_pa_app_list() {
