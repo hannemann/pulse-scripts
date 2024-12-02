@@ -6,7 +6,12 @@ set_app_sink() {
 	pactl move-sink-input "$1" "$2"
 }
 
-APP=$(get_pa_max_app_index $1)
+APP=$(get_pa_live_app_index $1)
 SINK=$(get_pa_sink_index ${!2})
+
+
+echo $APP
+echo $SINK
+
 
 set_app_sink ${APP} ${SINK}

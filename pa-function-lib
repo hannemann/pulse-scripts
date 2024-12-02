@@ -22,12 +22,21 @@ get_pa_max_app_index() {
 	LANG=LC_ALL pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
 }
 
+get_pa_live_app_index() {
+	LANG=LC_ALL pactl -f json list sink-inputs | jq -r --arg APP "$1" '.[] | select(.properties."target.object" != null and .properties."application.process.binary" == $APP) | .index'
+}
+
+get_pa_live_app_index_pwcli() {
+	LANG=LC_ALL pw-cli i all | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
+}
+
 get_pa_card_index() {
 	LANG=LC_ALL pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
 }
 
 get_pa_app_list() {
 	LANG=LC_ALL pactl list sink-inputs | awk '$1=="Sink" && $2=="Input" {idx = $3} $1 == "application.process.binary" {gsub(/"/,"",$3); print $3": "substr(idx,2);}'
+	#pactl -f json list sink-inputs | jq -r  '.[] | if .properties."application.process.binary" == null then .properties."application.name" else .properties."application.process.binary" end'
 }
 
 get_pa_app_source_index() {
