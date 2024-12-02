@@ -1,0 +1,20 @@
+#/usr/bin/env bash
+
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+
+_pa-app-volume_completions() {
+
+    COMPREPLY=()
+    local CUR=${COMP_WORDS[COMP_CWORD]}
+    local PREV=${COMP_WORDS[COMP_CWORD-1]}
+    local APPS=$(get_pa_app_list)
+    local MODS="+ -"
+    
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        COMPREPLY=( $(compgen -W "${APPS}" -- ${CUR}) )
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        COMPREPLY=( $(compgen -W "${MODS}" -- ${CUR}) )
+    fi
+}
+
+complete -F _pa-app-volume_completions pa-app-volume
