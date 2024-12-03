@@ -5,13 +5,14 @@
 _pa-app-sink_completions() {
     COMPREPLY=();
     local CUR=${COMP_WORDS[COMP_CWORD]}
-    local OUTPUTS=$(grep 'alsa_output' $HOME/.config/pulse-scripts/entities | column -t -s '=' | awk '{print $1}')
+    local OUTPUTS=$(get_pa_sinks_list)
     local APPS=$(get_pa_app_list)
     
     if [[ $COMP_CWORD -eq 1 ]]; then
         COMPREPLY=( $(compgen -W "${APPS}" -- ${CUR}) )
     elif [[ $COMP_CWORD -eq 2 ]]; then
-        COMPREPLY=( $(compgen -W "${OUTPUTS}" -- ${CUR}) )
+        mapfile -t patterns < <( get_pa_sinks_list )
+        mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
     fi
 }
 

@@ -2,19 +2,15 @@
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-_pa-app-volume_completions() {
+_pa-default-source_completions() {
 
     COMPREPLY=()
     local CUR=${COMP_WORDS[COMP_CWORD]}
-    local PREV=${COMP_WORDS[COMP_CWORD-1]}
-    local MODS="+ -"
     
     if [[ $COMP_CWORD -eq 1 ]]; then
-        mapfile -t patterns < <( get_pa_app_list )
+        mapfile -t patterns < <( get_pa_sources_list )
         mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
-    elif [[ $COMP_CWORD -eq 2 ]]; then
-        COMPREPLY=( $(compgen -W "${MODS}" -- ${CUR}) )
     fi
 }
 
-complete -F _pa-app-volume_completions pa-app-volume
+complete -F _pa-default-source_completions pa-default-source

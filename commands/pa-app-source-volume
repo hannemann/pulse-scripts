@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-
-if [ ! $(pidof -s $1) ]; then
-	echo App $1 not running >&2
-	exit 1;
-fi
-
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-INDEX=$(get_pa_max_app_source_index $1)
+INDEX=$(get_pa_app_source_index "$1")
+
+if ! [[ ${INDEX} =~ ^[0-9]+$ ]]; then
+	echo "Error: App $1 not found";
+	exit 1;
+fi
 
 if [[ "$2" == "+" ]]; then
 	pactl set-source-output-volume "${INDEX}" +5%

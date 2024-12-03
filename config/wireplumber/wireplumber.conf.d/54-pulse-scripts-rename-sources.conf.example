@@ -1,0 +1,38 @@
+monitor.alsa.rules = [
+  {
+    matches = [
+      {
+        node.name = "alsa_input.pci-0000_00_1f.3.analog-stereo"
+      }
+    ]
+    actions = {
+      update-props = {
+        node.description = "Intern"
+      }
+    }
+  }
+  {
+    matches = [
+      {
+        node.name = "alsa_input.usb-Anker_PowerConf_C200_Anker_PowerConf_C200_ACNV9P1E21574591-02.analog-stereo"
+      }
+    ]
+    actions = {
+      update-props = {
+        node.description = "Webcam"
+      }
+    }
+  }
+  {
+    matches = [
+      {
+        node.name = "alsa_input.usb-Actions_G06-BT_0123456789AB-01.mono-fallback"
+      }
+    ]
+    actions = {
+      update-props = {
+        node.description = "Headset WL"
+      }
+    }
+  }
+]
