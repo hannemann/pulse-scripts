@@ -4,32 +4,38 @@
 
 # unused
 get_pa_sinks() {
-	LANG=LC_ALL pactl list sinks | awk '/Sink #/ || /name:/'
+	LANG=LC_ALL pactl list sinks 2> /dev/null | awk '/Sink #/ || /name:/'
 }
 
 # unused
 get_pa_app_index() {
-	LANG=LC_ALL pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {idx = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sink-inputs 2> /dev/null | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {idx = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {print substr(idx,2); exit}'
 }
 
 # unused
 get_pa_max_app_index() {
-	LANG=LC_ALL pactl list sink-inputs | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
+	LANG=LC_ALL pactl list sink-inputs 2> /dev/null | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
 }
 
 # used functions
 get_pa_sink_index() {
-	LANG=LC_ALL pactl -f json list sinks | \
+	LANG=LC_ALL pactl -f json list sinks 2> /dev/null | \
 	jq -r --arg SINK "$1" '.[] | select(.name == $SINK) | .index'
 }
 
 get_pa_source_index() {
-	LANG=LC_ALL pactl list sources | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "Name:" && $2 == source {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list sources 2> /dev/null | awk -v source=$1 '$1 == "Source" {idx = $2} $1 == "Name:" && $2 == source {print substr(idx,2); exit}'
 }
 
 get_pa_live_app_index() {
-	LANG=LC_ALL pactl -f json list sink-inputs | \
-	jq -r --arg APP "$1" '.[] | select(.properties."node.driver-id" != null and (.properties."application.process.binary" == $APP or .properties."application.name" == $APP)) | .index'
+	if [[ $1 == "slack" ]]; then
+		CONDITION_PROPERTY="target.object"
+	else
+		CONDITION_PROPERTY="node.driver-id"
+	fi
+	LANG=LC_ALL pactl -f json list sink-inputs 2> /dev/null | \
+	jq -r --arg APP "$1" ".[] | select(.properties.\"${CONDITION_PROPERTY}\" != null and (.properties.\"application.process.binary\" == \"$1\" or .properties.\"application.name\" == \"$1\")) | .index" | \
+	sort -un | tail -n1
 }
 
 get_pa_live_app_index_pwcli() {
@@ -37,19 +43,19 @@ get_pa_live_app_index_pwcli() {
 }
 
 get_pa_card_index() {
-	LANG=LC_ALL pactl list cards | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
+	LANG=LC_ALL pactl list cards 2> /dev/null | awk -v name=$1 '$1 == "Card" {idx = $2} $1 == "Name:" && $2 == name {print substr(idx,2); exit}'
 }
 
 get_pa_app_list() {
-	LANG=LC_ALL pactl -f json list sink-inputs | \
+	LANG=LC_ALL pactl -f json list sink-inputs 2> /dev/null | \
 	jq -r  '.[] | select(.properties."node.driver-id" != null) | if .properties."application.process.binary" == null then .properties."application.name" else .properties."application.process.binary" end'
 }
 
 get_pa_app_source_index() {
-	LANG=LC_ALL pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {idx = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {print idx; exit}'
+	LANG=LC_ALL pactl list source-outputs 2> /dev/null | awk -v name=$1 '$1 == "Source" && $2 == "Output" {idx = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {print idx; exit}'
 }
 
 get_pa_max_app_source_index() {
-	LANG=LC_ALL pactl list source-outputs | awk -v name=$1 '$1 == "Source" && $2 == "Output" {tmp = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
+	LANG=LC_ALL pactl list source-outputs 2> /dev/null | awk -v name=$1 '$1 == "Source" && $2 == "Output" {tmp = substr($3,2)} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print idx[length(idx)] }'
 }
 

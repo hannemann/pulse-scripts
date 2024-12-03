@@ -27,13 +27,10 @@ list-cards:
 	pactl list cards | grep Name
 
 init-cards:
-	@echo "Ignore lines starting with 'Invalid non-ASCII character:'"; echo ""; \
-	pactl -f json list cards | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
+	@pactl -f json list cards 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
 
 init-sinks:
-	@echo "Ignore lines starting with 'Invalid non-ASCII character:'"; echo ""; \
-	pactl -f json list sinks | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
+	@pactl -f json list sinks 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
 
 init-sources:
-	@echo "Ignore lines starting with 'Invalid non-ASCII character:'"; echo ""; \
-	pactl -f json list sources | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
+	@pactl -f json list sources 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
