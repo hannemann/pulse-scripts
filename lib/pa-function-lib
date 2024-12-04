@@ -51,7 +51,7 @@ get_pa_app_index() {
 ###
 get_pa_app_source_index() {
 	LANG=LC_ALL pactl -f json list source-outputs 2> /dev/null | \
-	jq -r --arg APP "$1" '.[] | select(.properties."application.name" == $APP) | .index'
+	jq -r --arg APP "$1" '.[] | select(.properties."application.name" == $APP or .properties."application.process.binary" == $APP) | .index'
 }
 
 ###
@@ -114,7 +114,7 @@ get_pa_app_list() {
 ###
 get_pa_app_source_list() {
 	LANG=LC_ALL pactl -f json list source-outputs 2> /dev/null | \
-	jq -r '.[] | select(.properties."application.name" != "(null)") | .properties."application.name"'
+	jq -r '.[] | select(.properties."application.name" != "(null)") | if .properties."application.process.binary" == null then .properties."application.name" else .properties."application.process.binary" end'
 }
 
 ###########################################
