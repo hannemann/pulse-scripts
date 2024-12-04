@@ -3,16 +3,16 @@
 # obtain indices
 ################
 
-# TODO: Switch to pw-dump
-
 ###
  #
  # Obtain sink index
  #
 ###
 get_pa_sink_index() {
-	LANG=LC_ALL pactl -f json list sinks 2> /dev/null | \
-	jq -r --arg SINK "$1" '.[] | select(.description == $SINK) | .index'
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg SINK "$1" '.[]
+		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Sink" and .info.props."node.description" == $SINK)
+		| .info.props."object.serial"'
 }
 
 ###
@@ -21,13 +21,10 @@ get_pa_sink_index() {
  #
 ###
 get_pa_source_index() {
-	if [[ $1 = *.monitor ]]; then
-		MONITOR_CONDITION=".monitor_source != \"\""
-	else
-		MONITOR_CONDITION=".monitor_source == \"\""
-	fi
-	LANG=LC_ALL pactl -f json list sources 2> /dev/null | \
-	jq -r ".[] | select(${MONITOR_CONDITION} and .description == \"${1%.monitor}\") | .index"
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg SOURCE "$1" '.[]
+		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Source" and .info.props."node.description" == $SOURCE)
+		| .info.props."object.serial"'
 }
 
 ###
@@ -36,15 +33,16 @@ get_pa_source_index() {
  #
 ###
 get_pa_app_index() {
-	if [[ $1 == "slack" ]]; then
-		CONDITION_PROPERTY="target.object"
-	else
-		CONDITION_PROPERTY="node.driver-id"
-	fi
-	LANG=LC_ALL pactl -f json list sink-inputs 2> /dev/null | \
-	jq -r --arg APP "$1" ".[] | select(.properties.\"${CONDITION_PROPERTY}\" != null and (.properties.\"application.process.binary\" == \"$1\" or .properties.\"application.name\" == \"$1\")) | .index" | \
-	sort -un | tail -n1
-}
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg APP "$1" 'map(
+			select(
+				.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Output/Audio"
+				and (.info.props."application.process.binary" == $APP or .info.props."application.name" == $APP)
+			)
+		)
+		| max_by(.id)
+		| .info.props."object.serial"'
+}	
 
 ###
  #
@@ -52,8 +50,13 @@ get_pa_app_index() {
  #
 ###
 get_pa_app_source_index() {
-	LANG=LC_ALL pactl -f json list source-outputs 2> /dev/null | \
-	jq -r --arg APP "$1" '.[] | select(.properties."application.name" == $APP or .properties."application.process.binary" == $APP) | .index'
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg APP "$1" '.[]
+		| select(
+			.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Input/Audio"
+			and (.info.props."application.name" == $APP or .info.props."application.process.binary" == $APP)
+		)
+		| .info.props."object.serial"'
 }
 
 ###
@@ -62,8 +65,21 @@ get_pa_app_source_index() {
  #
 ###
 get_pa_card_index() {
-	LANG=LC_ALL pactl -f json list cards 2> /dev/null | \
-	jq -r --arg CARD "$1" '.[] | select(.description == $CARD) | .index'
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg CARD "$1" '.[]
+		| select(.type == "PipeWire:Interface:Device" and .info.props."media.class" == "Audio/Device" and .info.props."device.description" == $CARD)
+		| .info.props."object.serial"'
+}
+
+###
+ #
+ # obtain id of linked input node
+ # used to be able to destroy current playback link
+ #
+###
+get_pa_input_node_index() {
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg OUTPUT "$1" 'map(select(.type == "PipeWire:Interface:Link" and .info."output-node-id" == ($OUTPUT|tonumber))) | max_by(.id) | .info."input-node-id"'
 }
 
 # Obtain lists
@@ -75,8 +91,8 @@ get_pa_card_index() {
  #
 ###
 get_pa_sinks_list() {
-	LAND=LC_ALL pactl -f json list sinks 2> /dev/null | \
-	jq -r '.[] | .description'
+	LANG=LC_ALL pw-dump | \
+	jq -r '.[] | select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Sink") | .info.props."node.description"'
 }
 
 ###
@@ -85,8 +101,8 @@ get_pa_sinks_list() {
  #
 ###
 get_pa_sources_list() {
-	LAND=LC_ALL pactl -f json list sources 2> /dev/null | \
-	jq -r '.[] | .description + (if .monitor_source != "" then ".monitor" else "" end)'
+	LANG=LC_ALL pw-dump | \
+	jq -r '.[] | select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Source") | .info.props."node.description"'
 }
 
 ###
@@ -95,8 +111,8 @@ get_pa_sources_list() {
  #
 ###
 get_pa_cards_list() {
-	LAND=LC_ALL pactl -f json list cards 2> /dev/null | \
-	jq -r '.[] | .description'
+	LANG=LC_ALL pw-dump | \
+	jq -r '.[] | select(.type == "PipeWire:Interface:Device" and .info.props."media.class" == "Audio/Device") | .info.props."device.description"'
 }
 
 ###
@@ -105,8 +121,10 @@ get_pa_cards_list() {
  #
 ###
 get_pa_app_list() {
-	LANG=LC_ALL pactl -f json list sink-inputs 2> /dev/null | \
-	jq -r  '.[] | select(.properties."node.driver-id" != null) | if .properties."application.process.binary" == null then .properties."application.name" else .properties."application.process.binary" end'
+	LANG=LC_ALL pw-dump | \
+	jq -r '.[]
+		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Output/Audio")
+		| if .info.props."application.process.binary" == null then .info.props."application.name" else .info.props."application.process.binary" end'
 }
 
 ###
@@ -115,14 +133,9 @@ get_pa_app_list() {
  #
 ###
 get_pa_app_source_list() {
-	LANG=LC_ALL pactl -f json list source-outputs 2> /dev/null | \
-	jq -r '.[] | select(.properties."application.name" != "(null)") | if .properties."application.process.binary" == null then .properties."application.name" else .properties."application.process.binary" end'
-}
-
-###########################################
-# to be refactored
-
-get_pa_app_index_pwcli() {
-	LANG=LC_ALL pw-cli i all | awk -v name=$1 '$1 == "Sink" && $2 == "Input" {tmp = $3} $1 == "application.process.binary" && $3 == "\"" name "\"" {idx[NR] = tmp;} END { asort(idx); print substr(idx[length(idx)],2) }'
+	LANG=LC_ALL pw-dump | \
+	jq -r '.[]
+		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Input/Audio")
+		| if .info.props."application.process.binary" == null then .info.props."application.name" else .info.props."application.process.binary" end'
 }
 
