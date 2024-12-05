@@ -4,4 +4,4 @@
 
 SINK=$(get_pa_sink_index "$1")
 
-pactl set-default-sink ${SINK}
+! [[ -z {SINK} ]] && wpctl set-default ${SINK}

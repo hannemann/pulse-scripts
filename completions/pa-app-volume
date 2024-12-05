@@ -7,7 +7,7 @@ _pa-app-volume_completions() {
     COMPREPLY=()
     local CUR=${COMP_WORDS[COMP_CWORD]}
     local PREV=${COMP_WORDS[COMP_CWORD-1]}
-    local MODS="+ -"
+    local MODS="+ - toggle"
     
     if [[ $COMP_CWORD -eq 1 ]]; then
         mapfile -t patterns < <( get_pa_app_list )

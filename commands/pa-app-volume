@@ -10,13 +10,16 @@ if ! [[ ${INDEX} =~ ^[0-9]+$ ]]; then
 fi
 
 if [[ "$2" == "+" ]]; then
-	pactl set-sink-input-volume "${INDEX}" +5%
+	wpctl set-mute ${INDEX} 0
+	wpctl set-volume ${INDEX} 5%+
 elif [[ "$2" == "-" ]]; then
-	pactl set-sink-input-volume "${INDEX}" -5%
+	wpctl set-mute ${INDEX} 0
+	wpctl set-volume ${INDEX} 5%-
 elif [[ "$2" == "toggle" ]]; then
-	pactl set-sink-input-mute "${INDEX}" toggle
-elif [[ $2 =~ ^[0-9]+%$ ]]; then
-	pactl set-sink-input-volume "${INDEX}" $2
+	wpctl set-mute ${INDEX} toggle
+elif [[ $2 =~ ^[0-9]+$ ]]; then
+	wpctl set-mute ${INDEX} 0
+	wpctl set-volume ${INDEX} $2%
 else
-	echo toggle/+/-/percentage e.g 50%
+	echo toggle/+/-/percentage e.g 50
 fi

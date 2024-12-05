@@ -1,5 +1,19 @@
 #!/bin/bash
 
+SELECTOR_NODE_TYPE='.type == "PipeWire:Interface:Node"'
+SELECTOR_DEVICE_TYPE='.type == "PipeWire:Interface:Device"'
+SELECTOR_AUDIO_DEVICE_CLASS='.info.props."media.class" == "Audio/Device"'
+SELECTOR_SINK_CLASS='.info.props."media.class" == "Audio/Sink"'
+SELECTOR_SOURCE_CLASS='.info.props."media.class" == "Audio/Source"'
+SELECTOR_AUDIO_OUT_CLASS='.info.props."media.class" == "Stream/Output/Audio"'
+SELECTOR_AUDIO_IN_CLASS='.info.props."media.class" == "Stream/Input/Audio"'
+
+PATH_PROP_NODE_DESCRIPTION='.info.props."node.description"'
+PATH_PROP_DEVICE_DESCRIPTION='.info.props."device.description"'
+PATH_PROP_APP_BINARY='.info.props."application.process.binary"'
+PATH_PROP_APP_NAME='.info.props."application.name"'
+PATH_PROP_ID='.id'
+
 # obtain indices
 ################
 
@@ -10,9 +24,9 @@
 ###
 get_pa_sink_index() {
 	LANG=LC_ALL pw-dump | \
-	jq -r --arg SINK "$1" '.[]
-		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Sink" and .info.props."node.description" == $SINK)
-		| .info.props."object.serial"'
+	jq -r --arg SEARCH "$1" ".[]
+		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS} and ${PATH_PROP_NODE_DESCRIPTION} == \$SEARCH)
+		| ${PATH_PROP_ID}"
 }
 
 ###
@@ -22,9 +36,9 @@ get_pa_sink_index() {
 ###
 get_pa_source_index() {
 	LANG=LC_ALL pw-dump | \
-	jq -r --arg SOURCE "$1" '.[]
-		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Source" and .info.props."node.description" == $SOURCE)
-		| .info.props."object.serial"'
+	jq -r --arg SEARCH "$1" ".[]
+		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS} and ${PATH_PROP_NODE_DESCRIPTION} == \$SEARCH)
+		| ${PATH_PROP_ID}"
 }
 
 ###
@@ -34,14 +48,14 @@ get_pa_source_index() {
 ###
 get_pa_app_index() {
 	LANG=LC_ALL pw-dump | \
-	jq -r --arg APP "$1" 'map(
+	jq -r --arg SEARCH "$1" "map(
 			select(
-				.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Output/Audio"
-				and (.info.props."application.process.binary" == $APP or .info.props."application.name" == $APP)
+				${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_OUT_CLASS}
+				and (${PATH_PROP_APP_BINARY} == \$SEARCH or ${PATH_PROP_APP_NAME} == \$SEARCH)
 			)
 		)
-		| max_by(.id)
-		| .info.props."object.serial"'
+		| max_by(${PATH_PROP_ID})
+		| ${PATH_PROP_ID}"
 }	
 
 ###
@@ -51,12 +65,14 @@ get_pa_app_index() {
 ###
 get_pa_app_source_index() {
 	LANG=LC_ALL pw-dump | \
-	jq -r --arg APP "$1" '.[]
-		| select(
-			.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Input/Audio"
-			and (.info.props."application.name" == $APP or .info.props."application.process.binary" == $APP)
+	jq -r --arg SEARCH "$1" "map(
+			select(
+				${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_IN_CLASS}
+				and (${PATH_PROP_APP_BINARY} == \$SEARCH or ${PATH_PROP_APP_NAME} == \$SEARCH)
+			)
 		)
-		| .info.props."object.serial"'
+		| max_by(${PATH_PROP_ID})
+		| ${PATH_PROP_ID}"
 }
 
 ###
@@ -66,20 +82,9 @@ get_pa_app_source_index() {
 ###
 get_pa_card_index() {
 	LANG=LC_ALL pw-dump | \
-	jq -r --arg CARD "$1" '.[]
-		| select(.type == "PipeWire:Interface:Device" and .info.props."media.class" == "Audio/Device" and .info.props."device.description" == $CARD)
-		| .info.props."object.serial"'
-}
-
-###
- #
- # obtain id of linked input node
- # used to be able to destroy current playback link
- #
-###
-get_pa_input_node_index() {
-	LANG=LC_ALL pw-dump | \
-	jq -r --arg OUTPUT "$1" 'map(select(.type == "PipeWire:Interface:Link" and .info."output-node-id" == ($OUTPUT|tonumber))) | max_by(.id) | .info."input-node-id"'
+	jq -r --arg SEARCH "$1" ".[]
+		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH)
+		| ${PATH_PROP_ID}"
 }
 
 # Obtain lists
@@ -92,7 +97,17 @@ get_pa_input_node_index() {
 ###
 get_pa_sinks_list() {
 	LANG=LC_ALL pw-dump | \
-	jq -r '.[] | select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Sink") | .info.props."node.description"'
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS}) | ${PATH_PROP_NODE_DESCRIPTION}"
+}
+
+###
+ #
+ # Obtain sink ids list
+ #
+###
+get_pa_sink_ids_list() {
+	LANG=LC_ALL pw-dump | \
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS}) | ${PATH_PROP_ID}"
 }
 
 ###
@@ -102,17 +117,27 @@ get_pa_sinks_list() {
 ###
 get_pa_sources_list() {
 	LANG=LC_ALL pw-dump | \
-	jq -r '.[] | select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Audio/Source") | .info.props."node.description"'
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS}) | ${PATH_PROP_NODE_DESCRIPTION}"
 }
 
 ###
  #
- # Obtain sources list
+ # Obtain source ids list
+ #
+###
+get_pa_source_ids_list() {
+	LANG=LC_ALL pw-dump | \
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS}) | ${PATH_PROP_ID}"
+}
+
+###
+ #
+ # Obtain cards list
  #
 ###
 get_pa_cards_list() {
 	LANG=LC_ALL pw-dump | \
-	jq -r '.[] | select(.type == "PipeWire:Interface:Device" and .info.props."media.class" == "Audio/Device") | .info.props."device.description"'
+	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS}) | ${PATH_PROP_DEVICE_DESCRIPTION}"
 }
 
 ###
@@ -122,9 +147,9 @@ get_pa_cards_list() {
 ###
 get_pa_app_list() {
 	LANG=LC_ALL pw-dump | \
-	jq -r '.[]
-		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Output/Audio")
-		| if .info.props."application.process.binary" == null then .info.props."application.name" else .info.props."application.process.binary" end'
+	jq -r ".[]
+		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_OUT_CLASS})
+		| if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end"
 }
 
 ###
@@ -134,8 +159,8 @@ get_pa_app_list() {
 ###
 get_pa_app_source_list() {
 	LANG=LC_ALL pw-dump | \
-	jq -r '.[]
-		| select(.type == "PipeWire:Interface:Node" and .info.props."media.class" == "Stream/Input/Audio")
-		| if .info.props."application.process.binary" == null then .info.props."application.name" else .info.props."application.process.binary" end'
+	jq -r ".[]
+		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_IN_CLASS})
+		| if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end"
 }
 

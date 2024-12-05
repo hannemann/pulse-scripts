@@ -3,7 +3,10 @@
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
 set_app_sink() {
-	pactl move-sink-input "$1" "$2"
+	for i in $(get_pa_sink_ids_list); do
+		pw-link -d $1 $i 2> /dev/null
+	done
+	pw-link $1 $2
 }
 
 APP=$(get_pa_app_index "$1")
@@ -11,4 +14,4 @@ APP=$(get_pa_app_index "$1")
 SINK=$(get_pa_sink_index "$2")
 #echo Sink: $SINK
 
-set_app_sink ${APP} ${SINK}
+! [[ -z ${APP} ]] && ! [[ -z {SINK} ]] && set_app_sink ${APP} ${SINK}
