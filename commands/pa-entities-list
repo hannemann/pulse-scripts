@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
-PREPEND_LINE="---:-----------:----"
 
-echo "Sinks (Output):"
-echo ===============
-echo -e "${PREPEND_LINE}\n$(get_pa_sinks_info)" | column -t -s':' -N ID,Description,Name
-echo
-echo "Sources (Input):"
-echo ================
-echo -e "${PREPEND_LINE}\n$(get_pa_sources_info)" | column -t -s':' -N ID,Description,Name
-echo
-echo "Cards:"
-echo ======
-echo -e "${PREPEND_LINE}\n$(get_pa_cards_info)" | column -t -s':' -N ID,Description,Name
+pa_print_entities

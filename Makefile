@@ -1,3 +1,7 @@
+ifeq (, $(shell which jq))
+    $(error "jq is not available please install jq")
+endif
+
 install:
 	install -pD ./commands/* -t $$HOME/.local/bin/
 	install -m 644 -D ./lib/pa-function-lib $$HOME/.local/share/pulse-scripts/pa-function-lib
@@ -27,20 +31,8 @@ uninstall-wireplumber-config:
 restart-wireplumber:
 	systemctl --user restart wireplumber.service
 
-list-sinks:
-	pactl list sinks | grep -A 1 Name
+print-entities:
+	@. lib/pa-function-lib && pa_print_entities
 
-list-sources:
-	pactl list sources | grep -A 1 Name
-
-list-cards:
-	pactl list cards | grep Name
-
-init-cards:
-	@pactl -f json list cards 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
-
-init-sinks:
-	@pactl -f json list sinks 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
-
-init-sources:
-	@pactl -f json list sources 2> /dev/null | jq -r '.[] | .properties."device.nick" + "=\"" + .name + "\""'
+print-apps:
+	@. lib/pa-function-lib && pa_print_app_info

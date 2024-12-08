@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+[[ $1 == "playback" ]] && DEVICE="@DEFAULT_AUDIO_SINK@" || DEVICE="@DEFAULT_AUDIO_SOURCE@"
+
+if [[ "$2" == "+" ]]; then
+	wpctl set-mute ${DEVICE} 0
+	wpctl set-volume -l 1.5 ${DEVICE} 5%+
+elif [[ "$2" == "-" ]]; then
+	wpctl set-mute ${DEVICE} 0
+	wpctl set-volume ${DEVICE} 5%-
+elif [[ "$2" == "toggle" ]]; then
+	wpctl set-mute ${DEVICE} toggle
+elif [[ $2 =~ ^[0-9]+$ ]]; then
+	wpctl set-mute ${DEVICE} 0
+	wpctl set-volume -l 1.5 ${DEVICE} $2%
+else
+	echo toggle/+/-/percentage e.g 50
+fi

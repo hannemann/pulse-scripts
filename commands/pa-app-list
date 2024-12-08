@@ -2,4 +2,4 @@
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-get_pa_app_list
+pa_print_app_info

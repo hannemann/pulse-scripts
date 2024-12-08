@@ -1,0 +1,17 @@
+#/usr/bin/env bash
+
+_pa-default-volume_completions() {
+
+    COMPREPLY=()
+    local CUR=${COMP_WORDS[COMP_CWORD]}
+    local TYPES="playback record"
+    local MODS="+ - toggle"
+    
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        COMPREPLY=( $(compgen -W "${TYPES}" -- ${CUR}) )
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        COMPREPLY=( $(compgen -W "${MODS}" -- ${CUR}) )
+    fi
+}
+
+complete -F _pa-default-volume_completions pa-default-volume

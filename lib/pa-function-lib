@@ -3,10 +3,10 @@
 SELECTOR_NODE_TYPE='.type == "PipeWire:Interface:Node"'
 SELECTOR_DEVICE_TYPE='.type == "PipeWire:Interface:Device"'
 SELECTOR_AUDIO_DEVICE_CLASS='.info.props."media.class" == "Audio/Device"'
-SELECTOR_SINK_CLASS='.info.props."media.class" == "Audio/Sink"'
-SELECTOR_SOURCE_CLASS='.info.props."media.class" == "Audio/Source"'
-SELECTOR_AUDIO_OUT_CLASS='.info.props."media.class" == "Stream/Output/Audio"'
-SELECTOR_AUDIO_IN_CLASS='.info.props."media.class" == "Stream/Input/Audio"'
+SELECTOR_SINK_CLASS='.info.props."media.class" == "Audio/Sink"'               # input (speakers)
+SELECTOR_SOURCE_CLASS='.info.props."media.class" == "Audio/Source"'           # output (microphone)
+SELECTOR_AUDIO_OUT_CLASS='.info.props."media.class" == "Stream/Output/Audio"' # playback
+SELECTOR_AUDIO_IN_CLASS='.info.props."media.class" == "Stream/Input/Audio"'   # record
 
 PATH_PROP_NODE_DESCRIPTION='.info.props."node.description"'
 PATH_PROP_NODE_NAME='.info.props."node.name"'
@@ -15,7 +15,9 @@ PATH_PROP_DEVICE_NAME='.info.props."device.name"'
 PATH_PROP_PROFILE_DESCRIPTION='.description'
 PATH_PROP_APP_BINARY='.info.props."application.process.binary"'
 PATH_PROP_APP_NAME='.info.props."application.name"'
+PATH_PROP_DRIVER_ID='.info.props."node.driver-id"'
 PATH_PROP_ID='.id'
+PATH_PROP_INDEX='.index'
 
 # obtain indices
 ################
@@ -23,10 +25,12 @@ PATH_PROP_ID='.id'
 ###
  #
  # Obtain sink index
- #
+ # @param $1 sink node description
+ # @returns int index of sink
 ###
 get_pa_sink_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg SEARCH "$1" ".[]
 		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS} and ${PATH_PROP_NODE_DESCRIPTION} == \$SEARCH)
 		| ${PATH_PROP_ID}"
@@ -35,10 +39,12 @@ get_pa_sink_index() {
 ###
  #
  # Obtain source index
- #
+ # @param $1 source node description
+ # @returns int index of source
 ###
 get_pa_source_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg SEARCH "$1" ".[]
 		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS} and ${PATH_PROP_NODE_DESCRIPTION} == \$SEARCH)
 		| ${PATH_PROP_ID}"
@@ -46,11 +52,14 @@ get_pa_source_index() {
 
 ###
  #
- # Obtain app index
- #
+ # Obtain max app index
+ # some apps are enlisted multiple times. we assume that the max index is the one we are looking for
+ # @param $1 app name or binary name
+ # @returns int max index of app
 ###
 get_pa_app_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg SEARCH "$1" "map(
 			select(
 				${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_OUT_CLASS}
@@ -64,10 +73,13 @@ get_pa_app_index() {
 ###
  #
  # Obtain app source index
- #
+ # some apps are enlisted multiple times. we assume that the max index is the one we are looking for
+ # @param $1 name or binary name of app
+ # @returns int index of recording app
 ###
 get_pa_app_source_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg SEARCH "$1" "map(
 			select(
 				${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_IN_CLASS}
@@ -81,10 +93,12 @@ get_pa_app_source_index() {
 ###
  #
  # Obtain card index
- #
+ # @param $1 card description
+ # @returns int index of card
 ###
 get_pa_card_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg SEARCH "$1" ".[]
 		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH)
 		| ${PATH_PROP_ID}"
@@ -93,13 +107,18 @@ get_pa_card_index() {
 ###
  #
  # Obtain profile index by card
- #
+ # @param $1 card description
+ # @param $2 profile description 
+ # @returns int index of card profile
 ###
 get_pa_card_profile_index() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r --arg CARD "$1" --arg SEARCH "$2" ".[]
 		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$CARD)
-		| .info.params.EnumProfile[] | select(.available == "\""yes"\"" and ${PATH_PROP_PROFILE_DESCRIPTION} == \$SEARCH) | .index"
+		| .info.params.EnumProfile[]
+		| select(.available == "\""yes"\"" and ${PATH_PROP_PROFILE_DESCRIPTION} == \$SEARCH)
+		| ${PATH_PROP_INDEX}"
 }
 
 # Obtain lists
@@ -108,30 +127,33 @@ get_pa_card_profile_index() {
 ###
  #
  # Obtain sinks list
- #
+ # @returns string[] list of sinks
 ###
 get_pa_sinks_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS}) | ${PATH_PROP_NODE_DESCRIPTION}"
 }
 
 ###
  #
  # Obtain sink ids list
- #
+ # @returns int[] list of sink ids
 ###
 get_pa_sink_ids_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS}) | ${PATH_PROP_ID}"
 }
 
 ###
  #
  # Obtain sinks info
- #
+ # @returns string[] list of sinks info (id, description and name)
 ###
 get_pa_sinks_info() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS})
 		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_NODE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_NODE_NAME}"
 }
@@ -139,30 +161,33 @@ get_pa_sinks_info() {
 ###
  #
  # Obtain sources list
- #
+ # @returns string[] list of source descriptions
 ###
 get_pa_sources_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS}) | ${PATH_PROP_NODE_DESCRIPTION}"
 }
 
 ###
  #
  # Obtain source ids list
- #
+ # @returns string[] list of source ids
 ###
 get_pa_source_ids_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS}) | ${PATH_PROP_ID}"
 }
 
 ###
  #
  # Obtain sources info
- #
+ # @returns string[] list of sources info (id, description and name)
 ###
 get_pa_sources_info() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS})
 		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_NODE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_NODE_NAME}"
 }
@@ -170,20 +195,22 @@ get_pa_sources_info() {
 ###
  #
  # Obtain cards list
- #
+ # @returns string[] list of card descriptions
 ###
 get_pa_cards_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS}) | ${PATH_PROP_DEVICE_DESCRIPTION}"
 }
 
 ###
  #
  # Obtain cards info
- #
+ # @returns string[] list of cards info (id, description and name)
 ###
 get_pa_cards_info() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS})
 		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_DEVICE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_DEVICE_NAME}"
 }
@@ -191,9 +218,11 @@ get_pa_cards_info() {
 ###
  #
  # Obtain available profiles by card
- #
+ # @param $1 is a string representing card description to search for profiles on
+ # @returns string[] list of card profile descriptions
 ###
 get_pa_card_profiles_list() {
+	local LANG=LC_ALL
 	pw-dump | jq -r --arg SEARCH "$1" ".[]
 		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH)
 		| .info.params.EnumProfile[] | select(.available == "\""yes"\"") | .description"
@@ -202,24 +231,81 @@ get_pa_card_profiles_list() {
 ###
  #
  # Obtain apps list
- #
+ # @param $1 represents the audio class selector playback|record
+ # @returns string[] list of app names or app binary names
 ###
 get_pa_app_list() {
-	LANG=LC_ALL pw-dump | \
+	local LANG=LC_ALL
+	[[ $1 == 'playback' ]] && TYPE="${SELECTOR_AUDIO_OUT_CLASS}" || TYPE="${SELECTOR_AUDIO_IN_CLASS}"
+	pw-dump | \
 	jq -r ".[]
-		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_OUT_CLASS})
+		| select(${SELECTOR_NODE_TYPE} and ${TYPE})
 		| if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end"
 }
 
 ###
  #
- # Obtain app sources list
- #
+ # Obtain apps info
+ # @param $1 represents the audio class selector playback|record
+ # @returns string[] list of apps info
 ###
-get_pa_app_source_list() {
-	LANG=LC_ALL pw-dump | \
+get_pa_app_info() {
+	local LANG=LC_ALL
+	IFS=$'\n'
+	[[ $1 == 'playback' ]] && TYPE="${SELECTOR_AUDIO_OUT_CLASS}" || TYPE="${SELECTOR_AUDIO_IN_CLASS}"
+	DUMP=$(pw-dump)
+	APPS=$(echo ${DUMP} | \
 	jq -r ".[]
-		| select(${SELECTOR_NODE_TYPE} and ${SELECTOR_AUDIO_IN_CLASS})
-		| if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end"
+		| select(${SELECTOR_NODE_TYPE} and ${TYPE})
+		| (${PATH_PROP_ID}|tostring) + "\"":"\""
+		+ if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end + "\"":"\""
+		+ (${PATH_PROP_DRIVER_ID}|tostring)")
+	
+	for APP_INFO in ${APPS}; do
+		DRIVER=$(cut -d':' -f3 <<< ${APP_INFO})
+		APP_ID=$(cut -d':' -f1 <<< ${APP_INFO})
+		NAME=$(echo ${DUMP} | jq -r --arg DRIVER "$DRIVER" ".[] | select(.id == $DRIVER) | ${PATH_PROP_NODE_DESCRIPTION}")
+		VOLUME=$(wpctl get-volume ${APP_ID} | cut -d ' ' -f2)
+		[ -z $(which bc 2> /dev/null) ] || VOLUME=$(bc <<< "${VOLUME} * 100")
+		echo ${APP_INFO}:${NAME}:${VOLUME}%
+	done
 }
 
+# Print Info
+############
+
+pa_print_entities() {
+	PREPEND_LINE="---:-----------:----"
+
+	echo "Sinks (Output):"
+	echo ===============
+	echo -e "${PREPEND_LINE}\n$(get_pa_sinks_info)" | column -t -s':' -N ID,Description,Name
+	echo
+	echo "Sources (Input):"
+	echo ================
+	echo -e "${PREPEND_LINE}\n$(get_pa_sources_info)" | column -t -s':' -N ID,Description,Name
+	echo
+	echo "Cards:"
+	echo ======
+	echo -e "${PREPEND_LINE}\n$(get_pa_cards_info)" | column -t -s':' -N ID,Description,Name
+}
+
+pa_print_app_info() {
+	PREPEND_LINE="------:---:---------:------------:------"
+	PLAYBACK=$(get_pa_app_info playback)
+	RECORD=$(get_pa_app_info record)
+
+	if ! [[ -z ${PLAYBACK} ]]; then
+		echo "Playback:"
+		echo "========="
+		echo -e "${PREPEND_LINE}\n${PLAYBACK}" | column -t -s':' -N "App ID",App,"Sink ID","Sink Desc.","Volume"
+	fi
+	if ! [[ -z ${PLAYBACK} ]] && ! [[ -z ${RECORD} ]]; then
+		echo
+	fi
+	if ! [[ -z ${RECORD} ]]; then
+		echo "Record:"
+		echo "======="
+		echo -e "${PREPEND_LINE}\n${RECORD}" | column -t -s':' -N "App ID",App,"Source ID","Source Desc.","Volume"
+	fi
+}
