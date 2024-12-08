@@ -1,0 +1,20 @@
+#/usr/bin/env bash
+
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+
+_pa-card-profile_completions() {
+
+    COMPREPLY=()
+    local CUR=${COMP_WORDS[COMP_CWORD]}
+    local PREV=${COMP_WORDS[COMP_CWORD-1]}
+    
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        mapfile -t patterns < <( get_pa_cards_list )
+        mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        mapfile -t patterns < <( get_pa_card_profiles_list ${PREV} )
+        mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
+    fi
+}
+
+complete -F _pa-card-profile_completions pa-card-profile

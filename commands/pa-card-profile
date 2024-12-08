@@ -3,9 +3,13 @@
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
 set_card_profile() {
-	pactl set-card-profile "$1" "$2"
+	pw-cli set-param $1 Profile "{index: $2}" > /dev/null
 }
 
 CARD=$(get_pa_card_index "$1")
+#echo Card: ${CARD}
+PROFILE=$(get_pa_card_profile_index "$1" "$2")
+#echo Profile: ${PROFILE}
 
-set_card_profile ${CARD} "$2"
+
+set_card_profile "${CARD}" "${PROFILE}"

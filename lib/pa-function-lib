@@ -10,6 +10,7 @@ SELECTOR_AUDIO_IN_CLASS='.info.props."media.class" == "Stream/Input/Audio"'
 
 PATH_PROP_NODE_DESCRIPTION='.info.props."node.description"'
 PATH_PROP_DEVICE_DESCRIPTION='.info.props."device.description"'
+PATH_PROP_PROFILE_DESCRIPTION='.description'
 PATH_PROP_APP_BINARY='.info.props."application.process.binary"'
 PATH_PROP_APP_NAME='.info.props."application.name"'
 PATH_PROP_ID='.id'
@@ -87,6 +88,18 @@ get_pa_card_index() {
 		| ${PATH_PROP_ID}"
 }
 
+###
+ #
+ # Obtain profile index by card
+ #
+###
+get_pa_card_profile_index() {
+	LANG=LC_ALL pw-dump | \
+	jq -r --arg CARD "$1" --arg SEARCH "$2" ".[]
+		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$CARD)
+		| .info.params.EnumProfile[] | select(.available == "\""yes"\"" and ${PATH_PROP_PROFILE_DESCRIPTION} == \$SEARCH) | .index"
+}
+
 # Obtain lists
 ##############
 
@@ -138,6 +151,17 @@ get_pa_source_ids_list() {
 get_pa_cards_list() {
 	LANG=LC_ALL pw-dump | \
 	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS}) | ${PATH_PROP_DEVICE_DESCRIPTION}"
+}
+
+###
+ #
+ # Obtain available profiles by card
+ #
+###
+get_pa_card_profiles_list() {
+	pw-dump | jq -r --arg SEARCH "$1" ".[]
+		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH)
+		| .info.params.EnumProfile[] | select(.available == "\""yes"\"") | .description"
 }
 
 ###
