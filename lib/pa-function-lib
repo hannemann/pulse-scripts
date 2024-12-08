@@ -9,7 +9,9 @@ SELECTOR_AUDIO_OUT_CLASS='.info.props."media.class" == "Stream/Output/Audio"'
 SELECTOR_AUDIO_IN_CLASS='.info.props."media.class" == "Stream/Input/Audio"'
 
 PATH_PROP_NODE_DESCRIPTION='.info.props."node.description"'
+PATH_PROP_NODE_NAME='.info.props."node.name"'
 PATH_PROP_DEVICE_DESCRIPTION='.info.props."device.description"'
+PATH_PROP_DEVICE_NAME='.info.props."device.name"'
 PATH_PROP_PROFILE_DESCRIPTION='.description'
 PATH_PROP_APP_BINARY='.info.props."application.process.binary"'
 PATH_PROP_APP_NAME='.info.props."application.name"'
@@ -125,6 +127,17 @@ get_pa_sink_ids_list() {
 
 ###
  #
+ # Obtain sinks info
+ #
+###
+get_pa_sinks_info() {
+	LANG=LC_ALL pw-dump | \
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SINK_CLASS})
+		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_NODE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_NODE_NAME}"
+}
+
+###
+ #
  # Obtain sources list
  #
 ###
@@ -145,12 +158,34 @@ get_pa_source_ids_list() {
 
 ###
  #
+ # Obtain sources info
+ #
+###
+get_pa_sources_info() {
+	LANG=LC_ALL pw-dump | \
+	jq -r ".[] | select(${SELECTOR_NODE_TYPE} and ${SELECTOR_SOURCE_CLASS})
+		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_NODE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_NODE_NAME}"
+}
+
+###
+ #
  # Obtain cards list
  #
 ###
 get_pa_cards_list() {
 	LANG=LC_ALL pw-dump | \
 	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS}) | ${PATH_PROP_DEVICE_DESCRIPTION}"
+}
+
+###
+ #
+ # Obtain cards info
+ #
+###
+get_pa_cards_info() {
+	LANG=LC_ALL pw-dump | \
+	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS})
+		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_DEVICE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_DEVICE_NAME}"
 }
 
 ###

@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
-echo Inputs:
-echo --------------
-grep 'alsa_input' $HOME/.config/pulse-scripts/entities | column -t -s '='
+. $HOME/.local/share/pulse-scripts/pa-function-lib
+PREPEND_LINE="---:-----------:----"
+
+echo "Sinks (Output):"
+echo ===============
+echo -e "${PREPEND_LINE}\n$(get_pa_sinks_info)" | column -t -s':' -N ID,Description,Name
 echo
-echo Outputs:
-echo --------------
-grep 'alsa_output' $HOME/.config/pulse-scripts/entities | column -t -s '='
+echo "Sources (Input):"
+echo ================
+echo -e "${PREPEND_LINE}\n$(get_pa_sources_info)" | column -t -s':' -N ID,Description,Name
 echo
-echo Cards:
-echo --------------
-grep 'alsa_card' $HOME/.config/pulse-scripts/entities | column -t -s '='
+echo "Cards:"
+echo ======
+echo -e "${PREPEND_LINE}\n$(get_pa_cards_info)" | column -t -s':' -N ID,Description,Name
