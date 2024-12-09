@@ -209,13 +209,13 @@ get_pa_app_info() {
 	APPS=$(echo ${DUMP} | \
 	jq -r ".[]
 		| select(${SELECTOR_NODE_TYPE} and ${TYPE})
-		| (${PATH_PROP_ID}|tostring) + "\"":"\""
+		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + (${PATH_PROP_OBJECT_SERIAL}|tostring) + "\"":"\""
 		+ if ${PATH_PROP_APP_BINARY} == null then ${PATH_PROP_APP_NAME} else ${PATH_PROP_APP_BINARY} end + "\"":"\""
 		+ (${PATH_PROP_DRIVER_ID}|tostring)")
 	
 	for APP_INFO in ${APPS}; do
-		DRIVER=$(cut -d':' -f3 <<< ${APP_INFO})
 		APP_ID=$(cut -d':' -f1 <<< ${APP_INFO})
+		DRIVER=$(cut -d':' -f4 <<< ${APP_INFO})
 		NAME=$(echo ${DUMP} | jq -r --arg DRIVER "$DRIVER" ".[] | select(.id == $DRIVER) | ${PATH_PROP_NODE_DESCRIPTION}")
 		VOLUME=$(wpctl get-volume ${APP_ID} | cut -d ' ' -f2)
 		[ -z $(which bc 2> /dev/null) ] || VOLUME=$(bc <<< "${VOLUME} * 100")
@@ -244,14 +244,14 @@ pa_print_entities() {
 }
 
 pa_print_app_info() {
-	PREPEND_LINE="------:---:---------:------------:------"
+	PREPEND_LINE="--:------:---:---------:------------:------"
 	PLAYBACK=$(get_pa_app_info playback)
 	RECORD=$(get_pa_app_info record)
 
 	if ! [[ -z ${PLAYBACK} ]]; then
 		echo "Playback:"
 		echo "========="
-		echo -e "${PREPEND_LINE}\n${PLAYBACK}" | column -t -s':' -N "App ID",App,"Sink ID","Sink Desc.","Volume"
+		echo -e "${PREPEND_LINE}\n${PLAYBACK}" | column -t -s':' -N ID,Serial,App,"Sink ID","Sink Desc.","Volume"
 	fi
 	if ! [[ -z ${PLAYBACK} ]] && ! [[ -z ${RECORD} ]]; then
 		echo
@@ -259,6 +259,6 @@ pa_print_app_info() {
 	if ! [[ -z ${RECORD} ]]; then
 		echo "Record:"
 		echo "======="
-		echo -e "${PREPEND_LINE}\n${RECORD}" | column -t -s':' -N "App ID",App,"Source ID","Source Desc.","Volume"
+		echo -e "${PREPEND_LINE}\n${RECORD}" | column -t -s':' -N ID,Serial,App,"Source ID","Source Desc.","Volume"
 	fi
 }
