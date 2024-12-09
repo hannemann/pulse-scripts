@@ -12,6 +12,7 @@ PATH_PROP_NODE_DESCRIPTION='.info.props."node.description"'
 PATH_PROP_NODE_NAME='.info.props."node.name"'
 PATH_PROP_DEVICE_DESCRIPTION='.info.props."device.description"'
 PATH_PROP_DEVICE_NAME='.info.props."device.name"'
+PATH_PROP_DEVICE_CURRENT_PROFILE_DESCRIPTION='.info.params.Profile[0].description'
 PATH_PROP_PROFILE_DESCRIPTION='.description'
 PATH_PROP_APP_BINARY='.info.props."application.process.binary"'
 PATH_PROP_APP_NAME='.info.props."application.name"'
@@ -212,7 +213,10 @@ get_pa_cards_info() {
 	local LANG=LC_ALL
 	pw-dump | \
 	jq -r ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS})
-		| (${PATH_PROP_ID}|tostring) + "\"":"\"" + ${PATH_PROP_DEVICE_DESCRIPTION} + "\"":"\"" + ${PATH_PROP_DEVICE_NAME}"
+		| (${PATH_PROP_ID}|tostring) + "\"":"\""
+		+ ${PATH_PROP_DEVICE_DESCRIPTION} + "\"":"\""
+		+ ${PATH_PROP_DEVICE_CURRENT_PROFILE_DESCRIPTION} + "\"":"\""
+		+ ${PATH_PROP_DEVICE_NAME}"
 }
 
 ###
@@ -223,9 +227,12 @@ get_pa_cards_info() {
 ###
 get_pa_card_profiles_list() {
 	local LANG=LC_ALL
-	pw-dump | jq -r --arg SEARCH "$1" ".[]
+	#set -x
+	#echo jq -r --arg SEARCH "${*//\"/}" ".[] | select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH) | .info.params.EnumProfile[] | select(.available == "\""yes"\"") | .description"
+	#set +x
+	pw-dump | jq -r --arg SEARCH "${*//\"/}" ".[]
 		| select(${SELECTOR_DEVICE_TYPE} and ${SELECTOR_AUDIO_DEVICE_CLASS} and ${PATH_PROP_DEVICE_DESCRIPTION} == \$SEARCH)
-		| .info.params.EnumProfile[] | select(.available == "\""yes"\"") | .description"
+		| .info.params.EnumProfile[] | select(.available != "\""false"\"") | .description"
 }
 
 ###
@@ -285,9 +292,10 @@ pa_print_entities() {
 	echo ================
 	echo -e "${PREPEND_LINE}\n$(get_pa_sources_info)" | column -t -s':' -N ID,Description,Name
 	echo
+	PREPEND_LINE="---:-----------:-------:----"
 	echo "Cards:"
 	echo ======
-	echo -e "${PREPEND_LINE}\n$(get_pa_cards_info)" | column -t -s':' -N ID,Description,Name
+	echo -e "${PREPEND_LINE}\n$(get_pa_cards_info)" | column -t -s':' -N ID,Description,Profile,Name -W Profile -T Profile
 }
 
 pa_print_app_info() {
