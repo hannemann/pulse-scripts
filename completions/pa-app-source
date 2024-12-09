@@ -10,7 +10,7 @@ _pa-app-source_completions() {
         mapfile -t patterns < <( get_pa_app_list record )
         mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
     elif [[ $COMP_CWORD -eq 2 ]]; then
-        mapfile -t patterns < <( get_pa_sources_list )
+        mapfile -t patterns < <( get_pa_connectors_list record )
         mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
     fi
 }

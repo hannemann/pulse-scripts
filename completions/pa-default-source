@@ -8,7 +8,7 @@ _pa-default-source_completions() {
     local CUR=${COMP_WORDS[COMP_CWORD]}
     
     if [[ $COMP_CWORD -eq 1 ]]; then
-        mapfile -t patterns < <( get_pa_sources_list )
+        mapfile -t patterns < <( get_pa_connectors_list record )
         mapfile -t COMPREPLY < <( compgen -W "$( printf '%q ' "${patterns[@]}" )" -- "${CUR}" | awk '/ / { print "\""$0"\"" } /^[^ ]+$/ { print $0 }' )
     fi
 }

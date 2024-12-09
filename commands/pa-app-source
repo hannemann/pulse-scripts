@@ -3,15 +3,15 @@
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
 set_app_source() {
-	for i in $(get_pa_source_ids_list); do
+	for i in $(get_pa_connector_ids_list record); do
 		pw-link -d $i $1 2> /dev/null
 	done
 	pw-link $2 $1
 }
 
-APP=$(get_pa_app_source_index "$1")
+APP=$(get_pa_app_index record "$1")
 #echo App: $APP
-SOURCE=$(get_pa_source_index "$2")
+SOURCE=$(get_pa_connector_index record "$2")
 #echo Source: $SOURCE
 
 ! [[ -z ${APP} ]] && ! [[ -z {SOURCE} ]] && set_app_source ${APP} ${SOURCE}

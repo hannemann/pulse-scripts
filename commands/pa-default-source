@@ -2,6 +2,6 @@
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-SOURCE=$(get_pa_source_index "$1")
+SOURCE=$(get_pa_connector_index record "$1")
 
 ! [[ -z $SOURCE ]] && wpctl set-default ${SOURCE}

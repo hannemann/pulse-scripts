@@ -2,6 +2,6 @@
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-SINK=$(get_pa_sink_index "$1")
+SINK=$(get_pa_connector_index playback "$1")
 
 ! [[ -z {SINK} ]] && wpctl set-default ${SINK}

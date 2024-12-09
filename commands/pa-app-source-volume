@@ -2,7 +2,7 @@
 
 . $HOME/.local/share/pulse-scripts/pa-function-lib
 
-INDEX=$(get_pa_app_source_index "$1")
+INDEX=$(get_pa_app_index record "$1")
 
 if ! [[ ${INDEX} =~ ^[0-9]+$ ]]; then
 	echo "Error: App $1 not found";
